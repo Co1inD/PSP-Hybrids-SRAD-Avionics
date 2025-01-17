@@ -12,6 +12,7 @@ public class Decoder {
             list.add(packetData);
             offset += packetData.length;
         }
+        return list;
     }
     private PacketData decode(byte[] data, int offset) throws PacketDecodeException {
         if (data[offset] == 0b01){
