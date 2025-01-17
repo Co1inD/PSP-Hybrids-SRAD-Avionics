@@ -30,16 +30,11 @@ jobs:
     - name: Build with Maven
       run: | 
         cd gui
-        mvn -B package --file pom.xml
+        mvn -DskipTests -B package --file pom.xml
     - name: Run Tests
       run: |
         cd gui
         mvn test
-    - name: Publish Test Report
-      uses: mikepenz/action-junit-report@v5
-      if: success() || failure() # always run even if the previous step fails
-      with:
-        report_paths: '**/gui/build/test-results/test/TEST-*.xml'
         
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
 #    - name: Update dependency graph
