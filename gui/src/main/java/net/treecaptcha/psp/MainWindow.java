@@ -26,7 +26,9 @@ public class MainWindow extends JPanel{
     private JTable table1;
     private JPanel Config;
     private JTable currentStatus;
-
+    public void displayLog(String log){
+        logTextPane.setText(logTextPane.getText() + "\n" + log);
+    }
     private void createUIComponents() {
         // TODO: place custom component creation code here
     }

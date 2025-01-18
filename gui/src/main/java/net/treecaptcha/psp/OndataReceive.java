@@ -1,5 +1,5 @@
 package net.treecaptcha.psp;
 
-abstract class OndataReceive {
-    public abstract void onDataReceive(byte[] data);
+interface OndataReceive {
+    public void onDataReceive(byte[] data);
 }
