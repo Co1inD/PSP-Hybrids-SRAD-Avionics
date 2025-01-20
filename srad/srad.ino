@@ -18,7 +18,6 @@
 #define FLASH_DI 16
 #define ESP_USB_N 19
 #define ESP_USB_P 20
-#define GPS_EXTINT 47
 #define Flash_CLK 34
 #define Flash_CS 35
 #define Flash_MISO 36
@@ -49,6 +48,18 @@ void loop() {
 }
 
 
+hw_timer_t *My_timer = NULL;
+
+char* updatePacket(){
+  char *data = (char *)malloc(42);
+  // TODO
+  return data;
+}
+
+void IRAM_ATTR onUpdate(){
+  //call the filtre
+  
+}
 
 // Kalman filter code
 // don't ask questions you don't need the answers to
