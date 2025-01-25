@@ -1,5 +1,7 @@
 
 // GPIO ASSN
+
+
 #define FIRE_1 1
 #define PYRO_SENSE1 2
 #define FIRE_2 3
@@ -27,38 +29,76 @@
 #define GPS_SDA 46
 #define Buzzer 38
 
+#include <Wire.h>
+#include <SPI.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
 
+
+
+#define BME_SCK 13
+#define BME_MISO 12
+#define BME_MOSI 11
+#define BME_CS 9
+
+Adafruit_BME280 bme;
+
+void doSetupBaro(){
+    unsigned status;
+    
+    // default settings
+    status = bme.begin();  
+    // You can also pass in a Wire library object like &Wire2
+    // status = bme.begin(0x76, &Wire2)
+    if (!status) {
+        Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
+        Serial.print("SensorID was: 0x"); Serial.println(bme.sensorID(),16);
+        Serial.print("        ID of 0xFF probably means a bad address, a BMP 180 or BMP 085\n");
+        Serial.print("   ID of 0x56-0x58 represents a BMP 280,\n");
+        Serial.print("        ID of 0x60 represents a BME 280.\n");
+        Serial.print("        ID of 0x61 represents a BME 680.\n");
+        while (1) delay(10);
+    }
+}
+
+void getBaro(){
+  
+    Serial.print("Approx. Altitude = ");
+    Serial.print(bme.readAltitude(1013.25));
+    Serial.println(" m");
+}
 
 
 void setup() {
+  
+  
+  Serial.begin(9600);
+  while(!Serial);
   // GPS
 
   // Barometer
-
+  doSetupBaro();
   // IMU
 
   // Hi G
-
+  
   
 }
 
 void loop() {
-  
-
+  getBaro();
 }
 
 
-hw_timer_t *My_timer = NULL;
+
+
+
+
 
 char* updatePacket(){
   char *data = (char *)malloc(42);
   // TODO
   return data;
-}
-
-void IRAM_ATTR onUpdate(){
-  //call the filtre
-  
 }
 
 // Kalman filter code
