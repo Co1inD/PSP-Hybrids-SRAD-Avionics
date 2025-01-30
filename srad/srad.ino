@@ -1,7 +1,4 @@
-
 // GPIO ASSN
-
-
 #define FIRE_1 1
 #define PYRO_SENSE1 2
 #define FIRE_2 3
@@ -45,7 +42,6 @@ Adafruit_BME280 bme;
 
 void doSetupBaro(){
     unsigned status;
-    
     // default settings
     status = bme.begin();  
     // You can also pass in a Wire library object like &Wire2
@@ -72,12 +68,14 @@ void getBaro(){
 void setup() {
   
   
-  Serial.begin(9600);
+  Serial.begin(115200);
   while(!Serial);
+  Serial.print("\nHello World!\n");
+
   // GPS
 
   // Barometer
-  doSetupBaro();
+  
   // IMU
 
   // Hi G
@@ -86,14 +84,27 @@ void setup() {
 }
 
 void loop() {
-  getBaro();
+  updateVelocity();
+  
 }
 
 
 
 
+void updateVelocity(){
+  // get some sensor data
 
+  // call the filter
+}
 
+float getVelocityMagnitude(){
+  float* vel = getVelocity();
+  return sqrt(pow(vel[0], 2) + pow(vel[1], 2) + pow(vel[2], 2));
+}
+
+float* getVelocity(){
+  // some stuff
+}
 
 char* updatePacket(){
   char *data = (char *)malloc(42);
