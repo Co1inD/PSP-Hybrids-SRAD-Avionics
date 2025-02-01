@@ -80,14 +80,12 @@ float averageFloat(float* arr, int len) {
 float getAccelerationMagnitude() {
   float* acc = getAcceleration();
   float mag = sqrt(pow(acc[0], 2) + pow(acc[1], 2) + pow(acc[2], 2));
-  free(acc);
   return mag;
 }
 
 float getVelocityMagnitude() {
   float* vel = getVelocity();
   float mag = sqrt(pow(vel[0], 2) + pow(vel[1], 2) + pow(vel[2], 2));
-  free(vel);
   return mag;
 }
 
