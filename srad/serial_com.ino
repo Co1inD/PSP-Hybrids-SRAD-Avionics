@@ -9,12 +9,14 @@ void send(char* data, int length){
       Serial.write(x);
     }
     Serial.write("\n");
-}
+  }
+  free(data);
 }
 void log(String data){
   Serial.write("02");
   Serial.write(data);
   Serial.write("\n");
+  free(data);
 }
 void doComReady(){
   Serial.begin(115200);
