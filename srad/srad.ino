@@ -1,15 +1,10 @@
 
 // Hardware Driver
 #define testboard 1
-#define serialcom 1
+#define SERIALCOM 1
 #define G 9.8               // m/s/s
 #define SPEED_OF_SOUND 300  // m/s
 void setup() {
-
-
-  Serial.begin(115200);
-  while (!Serial);
-  Serial.print("\nHello World!\n");
   doSensorReady();
   doComReady();
 }
