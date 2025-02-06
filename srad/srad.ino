@@ -9,9 +9,6 @@ void setup() {
   doComReady();
 }
 
-
-
-
 int armed, takenOff, boostDone, sonicOver, paraOneLaunch, paraTwoLaunch;
 
 float paraTwoAlt = -1.0;
@@ -67,14 +64,6 @@ void loop() {
       launchChute(2);
     }
   }
-}
-
-float averageFloat(float* arr, int len) {
-  float sum = 0;
-  for (int i = 0; i < len; i++) {
-    sum += arr[i];
-  }
-  return sum / len;
 }
 
 float getAccelerationMagnitude() {

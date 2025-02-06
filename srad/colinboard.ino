@@ -11,7 +11,7 @@
 
 Adafruit_BME280 bme;
 
-void doSetupBaro(){
+void doSensorReady(){
     unsigned status;
     // default settings
     status = bme.begin();  
