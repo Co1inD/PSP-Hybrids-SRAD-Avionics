@@ -40,7 +40,7 @@ float* getPosition(){
   // some stuff
 }
 // return altitude in meters with respect to any static reference point
-float* getBaro(){
+float getBaro(){
   // some stuff
 }
 void launchChute(int number) {
