@@ -49,6 +49,38 @@ void launchChute(int number) {
 void doSensorReady(){
   // some stuff
 }
+
+//Produces a buzzer pattern depending on what mode is passed in. 
+void buzzer(int mode)
+{
+  pinMode(BUZZER, OUTPUT);
+  if(mode == 0) //idle
+  {
+    digitalWrite(BUZZER, LOW);
+  }
+  if(mode == 1) //ready
+  {
+    digitalWrite(BUZZER, HIGH);
+    delay(2000);
+    digitalWrite(BUZZER,LOW);
+  }
+  if(mode == 2) //armed
+  {
+    digitalWrite(BUZZER, HIGH);
+    delay(2000);
+    digitalWrite(BUZZER,LOW);
+    delay(1000);
+    digitalWrite(BUZZER, HIGH);
+    delay(2000);
+    digitalWrite(BUZZER,LOW);
+  }
+  if(mode == 3) //landed
+  {
+    digitalWrite(BUZZER, HIGH);
+    delay(10000);
+     digitalWrite(BUZZER,LOW);
+  }
+}
 void update() {
   // get all sensor data
 
