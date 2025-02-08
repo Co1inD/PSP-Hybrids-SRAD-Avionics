@@ -44,8 +44,27 @@ float getBaro(){
   // some stuff
 }
 void launchChute(int number) {
-  // some stuff
+  // Set GPIO1 and GPIO3 as output setup
+  pinMode(FIRE_1, OUTPUT);
+  pinMode(FIRE_2, OUTPUT);
+  // Immediately pull high to ensure channels do not fire
+  digitalWrite(FIRE_1, HIGH);
+  digitalWrite(FIRE_2, HIGH);
+  //End of Setup
+
+  //PULLING GPIO PIN 1 & 3 LOW FIRES PYRO (when safety jumper is installed)
+  // Pull GPIO1 and GPIO3 LOW 
+  digitalWrite(FIRE_1, LOW);
+  delay(1000); //Wait 1 second
+  digitalWrite(FIRE_1, HIGH);
+
+  delay(5000); // Wait 5 seconds 
+  
+  digitalWrite(FIRE_2, LOW);
+  delay(1000); //Wait 1 second
+  digitalWrite(FIRE_2, HIGH);
 }
+
 void doSensorReady(){
   // some stuff
 }
