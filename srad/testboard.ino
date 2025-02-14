@@ -1,3 +1,3 @@
-#ifdef testboard
+#ifdef Test_Board
 
 #endif

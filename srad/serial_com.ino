@@ -1,4 +1,4 @@
-#ifdef SERIALCOM
+#ifdef Serial_Com
 void send(char* data, int length){
   char x;
 

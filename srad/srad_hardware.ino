@@ -1,4 +1,4 @@
-#ifdef srad_hardware
+#ifdef Srad_Hardware
 
 // GPIO ASSN
 #define FIRE_1 1

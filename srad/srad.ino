@@ -1,8 +1,12 @@
 
-// Hardware Driver
-#define testboard 1
-#define SERIALCOM 1
-#define Null_log 1
+// Hardware Driver: Test_Board | Colin_Board | Srad_Hardware
+#define Test_Board 1
+// Comunication library: Serial_Com | Radio_Com
+#define Serial_Com 1
+// Logging Library: SD_Log | Null_Log
+#define Null_Log 1
+
+
 #define G 9.8               // m/s/s
 #define SPEED_OF_SOUND 300  // m/s
 void setup() {
