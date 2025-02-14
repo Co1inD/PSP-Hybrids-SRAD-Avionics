@@ -1,5 +1,5 @@
 package net.treecaptcha.psp.decoder;
-import net.treecaptcha.psp.decoder.ByteUtils;
+
 public class UpdatePacket implements PacketData{
     public final int length = 42;
     public final boolean isReady;
@@ -8,22 +8,26 @@ public class UpdatePacket implements PacketData{
     public final boolean hasLaunchedFirstParachute;
     public final boolean hasLaunchedSecondParachute;
 
-    public final int timeSinceSync;
+    public final int time;
 
-    public final float AccelerationN;
-    public final float AccelerationE;
-    public final float AccelerationU;
+    public final float accelerationN;
+    public final float accelerationE;
+    public final float accelerationU;
 
-    public final float VelocityN;
-    public final float VelocityE;
-    public final float VelocityU;
+    public final float velocityN;
+    public final float velocityE;
+    public final float velocityU;
 
-    public final float PositionN;
-    public final float PositionE;
-    public final float PositionU;
+    public final float positionN;
+    public final float positionE;
+    public final float positionU;
+
+    public final float polar;
+    public final float azimuth;
+
 
     public UpdatePacket(byte[] data, int offset) throws PacketDecodeException {
-        if (data.length - offset >= 42) throw new PacketDecodeException("Buffer Too Small for type UpdatePacket");
+        if (data.length - offset >= 50) throw new PacketDecodeException("Buffer Too Small for type UpdatePacket");
         if (data[offset] != 0b01) throw new PacketDecodeException("Type not marked as UpdatePacket");
         byte status = data[offset + 1];
         isReady                    = 0!=(status & 0b00001);
@@ -32,21 +36,22 @@ public class UpdatePacket implements PacketData{
         hasLaunchedFirstParachute  = 0!=(status & 0b01000);
         hasLaunchedSecondParachute = 0!=(status & 0b10000);
 
-        timeSinceSync = ByteUtils.intFromBytes(data, offset + 2);
+        time = ByteUtils.intFromBytes(data, offset + 2);
 
-        AccelerationN = ByteUtils.floatFromBytes(data, offset + 6);
-        AccelerationE = ByteUtils.floatFromBytes(data, offset + 10);
-        AccelerationU = ByteUtils.floatFromBytes(data, offset + 14);
+        accelerationN = ByteUtils.floatFromBytes(data, offset + 6);
+        accelerationE = ByteUtils.floatFromBytes(data, offset + 10);
+        accelerationU = ByteUtils.floatFromBytes(data, offset + 14);
 
-        VelocityN = ByteUtils.floatFromBytes(data, offset + 18);
-        VelocityE = ByteUtils.floatFromBytes(data, offset + 22);
-        VelocityU = ByteUtils.floatFromBytes(data, offset + 26);
+        velocityN = ByteUtils.floatFromBytes(data, offset + 18);
+        velocityE = ByteUtils.floatFromBytes(data, offset + 22);
+        velocityU = ByteUtils.floatFromBytes(data, offset + 26);
 
-        PositionN = ByteUtils.floatFromBytes(data, offset + 30);
-        PositionE = ByteUtils.floatFromBytes(data, offset + 34);
-        PositionU = ByteUtils.floatFromBytes(data, offset + 38);
+        positionN = ByteUtils.floatFromBytes(data, offset + 30);
+        positionE = ByteUtils.floatFromBytes(data, offset + 34);
+        positionU = ByteUtils.floatFromBytes(data, offset + 38);
 
-
+        polar = ByteUtils.floatFromBytes(data, offset + 42);
+        azimuth = ByteUtils.floatFromBytes(data, offset + 46);
     }
 
 }
