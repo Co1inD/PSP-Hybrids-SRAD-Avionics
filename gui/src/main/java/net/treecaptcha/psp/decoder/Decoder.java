@@ -19,7 +19,7 @@ public class Decoder {
             return new UpdatePacket(data, offset);
         }
         else if (data[offset] == 0b10){
-            throw new PacketDecodeException("Unable to proccess message packet, check back later");
+            return new MessagePacket(data, offset);
         }
         throw new PacketDecodeException("Unknown packet type: " + data[offset]);
     }
