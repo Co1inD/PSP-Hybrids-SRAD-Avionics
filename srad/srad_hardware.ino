@@ -43,6 +43,11 @@ float* getPosition(){
 float getBaro(){
   // some stuff
 }
+
+float* getOrientation(){
+  // some stuff
+}
+
 void launchChute(int number) {
   // Set GPIO1 and GPIO3 as output setup
   pinMode(FIRE_1, OUTPUT);

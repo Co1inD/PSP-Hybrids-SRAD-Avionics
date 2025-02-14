@@ -2,11 +2,13 @@
 // Hardware Driver
 #define testboard 1
 #define SERIALCOM 1
+#define Null_log 1
 #define G 9.8               // m/s/s
 #define SPEED_OF_SOUND 300  // m/s
 void setup() {
   doSensorReady();
   doComReady();
+  doLogReady();
 }
 
 int armed, takenOff, boostDone, sonicOver, paraOneLaunch, paraTwoLaunch;
