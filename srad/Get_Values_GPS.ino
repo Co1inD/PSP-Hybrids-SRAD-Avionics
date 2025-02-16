@@ -1,3 +1,4 @@
+#ifdef GPS_TEST
 #include <Wire.h>
 #include <SparkFun_u-blox_GNSS_Arduino_Library.h> //library from Confluence to install
 
@@ -41,3 +42,4 @@ void loop()
         Serial.printf("%02d-%02d-%04d %02d:%02d:%02d\n", day, month, year, hour, minute, second);
 }
 
+#endif
