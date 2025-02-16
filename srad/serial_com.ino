@@ -6,17 +6,15 @@ void send(char* data, int length){
 
     x = data[i];
     if ( (x>='0' && x<='9')? (x-'0'):((x>='A' && x<= 'F')?((x-'A')+10):(0)) ){
-      Serial.write(x);
+      Serial.write((char)x);
     }
     Serial.write("\n");
   }
   free(data);
 }
-void log(String data){
+void send(String data){
   Serial.write("02");
-  Serial.write(data);
-  Serial.write("\n");
-  free(data);
+  Serial.println(data);
 }
 void doComReady(){
   Serial.begin(115200);

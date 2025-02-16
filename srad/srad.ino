@@ -55,8 +55,8 @@ int armed, takenOff, boostDone, sonicOver, paraOneLaunch, paraTwoLaunch;
 
 float paraTwoAlt = -1.0;
 int launchTime;
-float* oldAlt[10];
-float* newAlt[10];
+float oldAlt[10];
+float newAlt[10];
 int altIndex;
 bool altFull;
 
@@ -98,51 +98,6 @@ void queueRecord(char* data, int length){
 
 }
 
-void loop() {
-  update();
-  float vel = getVelocityMagnitude();
-  float acc = getAccelerationMagnitude();
-  float alt = getBaro();
-  if (!armed) return;
-  if (!takenOff) {
-    if (acc > 3 * G) {
-      takenOff = millis();
-    }
-    return;
-  }
-  if (!boostDone) {
-    float* accVec = getAcceleration();
-    if (accVec[2] < 0) {
-      boostDone = millis();
-    }
-    free(accVec);
-    return;
-  }
-  if (!sonicOver) {
-    if (vel < SPEED_OF_SOUND) {
-      sonicOver = millis();
-    }
-    return;
-  }
-  if (!paraOneLaunch) {
-    if (altIndex == 10) {
-      altIndex = 0;
-      altFull = millis();
-    }
-    oldAlt[altIndex] = newAlt[altIndex];
-    newAlt[altIndex] = alt;
-    altIndex++;
-    if (averageFloat(oldAlt) >= averageFloat(newAlt)) {
-      paraOneLaunch = millis();
-      launchChute(1);
-    }
-  }
-  if(!paraTwoLaunch){
-    if (alt < paraTwoAlt){
-      paraTwoLaunch = millis();
-      launchChute(2);
-    }
-  }
 void queueRecord(String data){
   const char* cstr = data.c_str();
   int len = 0;
@@ -224,7 +179,7 @@ float getVelocityMagnitude() {
 }
 
 char* updatePacket() {
-  char* data = (char*)malloc(42);
+  char* data = (char*)malloc(UPDATE_PACKET_LENGTH);
   data[0] = 0b01;
   data[1] += 0b00000001 * !!armed;
   data[1] += 0b00000010 * !!takenOff;
@@ -232,9 +187,11 @@ char* updatePacket() {
   data[1] += 0b00001000 * !!sonicOver;
   data[1] += 0b00010000 * !!paraOneLaunch;
   data[1] += 0b00100000 * !!paraTwoLaunch;
-  memcpy(data + 2, &((int)millis()), 4);
+  int timeTemp = (int)millis();
+  memcpy(data + 2, &(timeTemp), 4);
   memcpy(data + 6, getAcceleration(), 12);
   memcpy(data + 18, getVelocity(), 12);
   memcpy(data + 30, getPosition(), 12);
+  memcpy(data + 42, getOrientation(), 8);
   return data;
 }
