@@ -1,4 +1,4 @@
-#ifdef Colin_Board
+#ifdef Barometer
 #include <Wire.h>
 #include <SPI.h>
 #include <Adafruit_Sensor.h>
@@ -8,6 +8,7 @@
 #define BME_MISO 12
 #define BME_MOSI 11
 #define BME_CS 9
+#define SLP 1013.25 //sea level pressure in hPa
 
 Adafruit_BME280 bme;
 
@@ -28,8 +29,9 @@ void doSensorReady(){
     }
 }
 
-float getBaro(){
-  return bme.readAltitude(1013.25);
+float getBaro()
+{
+  return bme.readAltitude(SLP); //1013.25
 }
 
 
