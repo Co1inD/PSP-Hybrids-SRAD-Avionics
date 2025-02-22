@@ -89,7 +89,7 @@ void sendLoop(void *parameter){
 }
 
 void queueRecord(char* data, int length){
-  char* copiedData = (char*)malloc(length);
+  char* copiedData = malloc(sizeof(*copiedData),length);
   memcpy(copiedData, data, length);
   lengths[IDX] = length;
   logData[IDX] = data;  
