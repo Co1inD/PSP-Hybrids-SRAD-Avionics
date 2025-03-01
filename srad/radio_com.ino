@@ -8,6 +8,6 @@ void send(String data){
   free(data);
 }
 void doComReady(){
-  // some stuff
+  
 }
 #endif

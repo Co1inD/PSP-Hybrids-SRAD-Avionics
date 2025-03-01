@@ -1,15 +1,13 @@
 #ifdef Serial_Com
 void send(char* data, int length){
-  char x;
-
+  char x;  
   for (int i = 0; i < length; i++){
-
+    
     x = data[i];
-    if ( (x>='0' && x<='9')? (x-'0'):((x>='A' && x<= 'F')?((x-'A')+10):(0)) ){
-      Serial.write((char)x);
-    }
-    Serial.write("\n");
+    Serial.printf("%02X", x);
   }
+  Serial.write("\n");
+  Serial.flush();
   free(data);
 }
 void send(String data){
@@ -17,7 +15,7 @@ void send(String data){
   Serial.println(data);
 }
 void doComReady(){
-  Serial.begin(115200);
+  Serial.begin(9600);
   while (!Serial);
 }
 #endif

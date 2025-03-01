@@ -24,7 +24,7 @@ void setup() {
   xTaskCreatePinnedToCore(
       mainLoop, /* Function to implement the task */
       "main loop", /* Name of the task */
-      1000,  /* Stack size in words */
+      10000,  /* Stack size in words */
       NULL,  /* Task input parameter */
       0,  /* Priority of the task */
       &mainTask,  /* Task handle. */
@@ -32,7 +32,7 @@ void setup() {
   xTaskCreatePinnedToCore(
       logLoop, /* Function to implement the task */
       "log loop", /* Name of the task */
-      1000,  /* Stack size in words */
+      10000,  /* Stack size in words */
       NULL,  /* Task input parameter */
       1,  /* Priority of the task */
       &logTask,  /* Task handle. */
@@ -40,11 +40,12 @@ void setup() {
   xTaskCreatePinnedToCore(
       sendLoop, /* Function to implement the task */
       "send loop", /* Name of the task */
-      1000,  /* Stack size in words */
+      10000,  /* Stack size in words */
       NULL,  /* Task input parameter */
       1,  /* Priority of the task */
       &comTask,  /* Task handle. */
       0); /* Core where the task should run */
+
 }
 
 void loop(){
@@ -80,31 +81,33 @@ void sendLoop(void *parameter){
   int sentIDX = 0;
   while(true){
     while(IDX != sentIDX){
-      log(logData[sentIDX], lengths[sentIDX]);
+      send(sendData[sentIDX], lengths[sentIDX]);
       sentIDX++;
       if (sentIDX == 3000) sentIDX = 0;
+      delay(1);
     }
     delay(10);
   }
 }
 
 void queueRecord(char* data, int length){
-  char* copiedData = malloc(sizeof(*copiedData),length);
+  char* copiedData = (char*)malloc(length);
   memcpy(copiedData, data, length);
   lengths[IDX] = length;
   logData[IDX] = data;  
   sendData[IDX] = copiedData; 
   IDX++;
-
+  if (IDX == 3000) IDX = 0;
 }
 
 void queueRecord(String data){
   const char* cstr = data.c_str();
-  int len = 0;
-  while(!cstr[len++]);
-  char* copiedcstr = (char*)malloc(len);
-  memcpy(copiedcstr, cstr, len);
-  queueRecord(copiedcstr, len);
+  int len = strlen(cstr);
+  char* copiedcstr = (char*)malloc(len + 5);
+  copiedcstr[0] = 0b10;
+  memcpy(copiedcstr + 1, &len, 4);
+  memcpy(copiedcstr + 5, cstr, len);
+  queueRecord(copiedcstr, len + 5);
 }
 
 void mainLoop(void *parameter) {
@@ -114,27 +117,27 @@ void mainLoop(void *parameter) {
     float vel = getVelocityMagnitude();
     float acc = getAccelerationMagnitude();
     float alt = getBaro();
-    if (!armed) return;
-    if (!takenOff) {
+    if (!armed){}
+    else if (!takenOff) {
       if (acc > 3 * G) {
         takenOff = millis();
       }
-      return;
+      
     }
-    if (!boostDone) {
+    else if (!boostDone) {
       float* accVec = getAcceleration();
       if (accVec[2] < 0) {
         boostDone = millis();
       }
-      return;
+      
     }
-    if (!sonicOver) {
+    else if (!sonicOver) {
       if (vel < SPEED_OF_SOUND) {
         sonicOver = millis();
       }
-      return;
+      
     }
-    if (!paraOneLaunch) {
+    else if (!paraOneLaunch) {
       if (altIndex == 10) {
         altIndex = 0;
         altFull = millis();
@@ -142,17 +145,19 @@ void mainLoop(void *parameter) {
       oldAlt[altIndex] = newAlt[altIndex];
       newAlt[altIndex] = alt;
       altIndex++;
-      if (averageFloat(oldAlt, 10) >= averageFloat(newAlt, 10)) {
+      if (altFull && averageFloat(oldAlt, 10) >= averageFloat(newAlt, 10)) {
         paraOneLaunch = millis();
         launchChute(1);
       }
     }
-    if(!paraTwoLaunch){
+    else if(!paraTwoLaunch){
       if (alt < paraTwoAlt){
         paraTwoLaunch = millis();
         launchChute(2);
       }
     }
+    char* updateP = updatePacket();
+    queueRecord(updateP, UPDATE_PACKET_LENGTH);
     int endTime = millis();
     delay(startTime > endTime - 10? 10 - (endTime - startTime ): 0);
   }
@@ -181,17 +186,20 @@ float getVelocityMagnitude() {
 char* updatePacket() {
   char* data = (char*)malloc(UPDATE_PACKET_LENGTH);
   data[0] = 0b01;
-  data[1] += 0b00000001 * !!armed;
-  data[1] += 0b00000010 * !!takenOff;
-  data[1] += 0b00000100 * !!boostDone;
-  data[1] += 0b00001000 * !!sonicOver;
-  data[1] += 0b00010000 * !!paraOneLaunch;
-  data[1] += 0b00100000 * !!paraTwoLaunch;
+  char status = 0;
+  status += 0b00000001 * 0!=armed;
+  status += 0b00000010 * 0!=takenOff;
+  status += 0b00000100 * 0!=boostDone;
+  status += 0b00001000 * 0!=sonicOver;
+  status += 0b00010000 * 0!=paraOneLaunch;
+  status += 0b00100000 * 0!=paraTwoLaunch;
+  data[1] = status;
   int timeTemp = (int)millis();
   memcpy(data + 2, &(timeTemp), 4);
   memcpy(data + 6, getAcceleration(), 12);
   memcpy(data + 18, getVelocity(), 12);
   memcpy(data + 30, getPosition(), 12);
   memcpy(data + 42, getOrientation(), 8);
+  delay(100);
   return data;
 }

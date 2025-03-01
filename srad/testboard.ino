@@ -1,27 +1,36 @@
 #ifdef Test_Board
+#ifndef M_PI
+#include <math.h>
+#endif
+
+float velocity[] = {0, 0, 0};
+float acceleration[] = {0, 0, 0};
+float position[] = {0, 0, 0};
+float orientation[] = {0, 0};
+float baro = 0;
 
 float* getVelocity() {
-  // some stuff
+  return velocity;
 }
 
 float* getAcceleration() {
-  // some stuff
+  return acceleration;
 }
 
 float* getPosition(){
-  // some stuff
+  return position;
 }
 // return altitude in meters with respect to any static reference point
 float getBaro(){
-  // some stuff
+  return baro;
 }
 
 float* getOrientation(){
-  // some stuff
+  return orientation;
 }
 
 void launchChute(int number) {
-// no stuff
+  queueRecord("booom!");
 }
 
 void doSensorReady(){
@@ -33,8 +42,12 @@ void buzzer(int mode){
  // no stuff
 }
 void update() {
-  // get all sensor data
-
+  position[0] = sin(millis()/2000.0);
+  position[1] = cos(millis()/2000.0);
+  velocity[0] = cos(millis()/2000.0);
+  velocity[1] = -sin(millis()/2000.0);
+  acceleration[0] = -sin(millis()/2000.0);
+  acceleration[1] = -cos(millis()/2000.0);
   // call the filter
   
   // some stuff

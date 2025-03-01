@@ -1,3 +1,4 @@
+#ifdef EXAMPLECODE
 /**
  * EnhancedDualCoreRocket.ino
  *
@@ -351,4 +352,4 @@ void deployChute(int chuteNumber) {
   delay(1000);                  // 1 second pulse
   digitalWrite(pyroPin, HIGH);  // Deactivate
 }
-
+#endif
