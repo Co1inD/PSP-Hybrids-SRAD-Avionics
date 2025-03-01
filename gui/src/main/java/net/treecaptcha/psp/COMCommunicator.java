@@ -1,24 +1,58 @@
 package net.treecaptcha.psp;
+import com.fazecast.jSerialComm.*;
 
-public class COMCommunicator implements RocketCommunicator {
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.HexFormat;
+import java.util.Scanner;
+
+public class COMCommunicator extends Thread implements RocketCommunicator {
     private OnDataReceive ondataReceive;
-    COMCommunicator(OnDataReceive ondataReceive, String port) {
+    private SerialPort serialPort;
+    private long lastConnectTime;
+    COMCommunicator(OnDataReceive ondataReceive, SerialPort serialPort) {
         this.ondataReceive = ondataReceive;
+        this.serialPort = serialPort;
+        serialPort.setComPortParameters(38400, 8, 1, 0);
+        serialPort.openPort();
+        this.start();
     }
     @Override
     public void setOnDataReceive(OnDataReceive ondatareceive) {
         this.ondataReceive = ondatareceive;
     }
     @Override
-    public void transmit(Byte[] data) {
-
+    public void transmit(byte[] data) {
+        serialPort.writeBytes(data, data.length);
     }
     @Override
     public boolean hasConnection(){
-        return false;
+        return serialPort.isOpen();
     }
     @Override
     public int millisSinceLastConnection() {
-        return Integer.MAX_VALUE;
+        return (int) (System.currentTimeMillis() - lastConnectTime);
+    }
+
+    @Override
+    public void run() {
+        InputStream inputStream = serialPort.getInputStream();
+        serialPort.setComPortTimeouts(SerialPort.TIMEOUT_READ_BLOCKING, 1, 0);
+        Scanner scanner = new Scanner(inputStream);
+        while (true){
+            while (serialPort.bytesAvailable() >= 2) {
+                String data = scanner.nextLine();
+                if (data.startsWith("0") && data.length() % 2 == 0)
+                    ondataReceive.onDataReceive(HexFormat.of().parseHex(data));
+                else
+                    System.out.println("Received bad data: " + data);
+                lastConnectTime = System.currentTimeMillis();
+            }
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }

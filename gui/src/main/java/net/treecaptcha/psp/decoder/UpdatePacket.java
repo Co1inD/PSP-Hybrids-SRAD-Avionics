@@ -1,7 +1,7 @@
 package net.treecaptcha.psp.decoder;
 
 public class UpdatePacket implements PacketData{
-    public final int length = 42;
+    public final int length = 50;
     public final boolean isReady;
     public final boolean hasLaunched;
     public final boolean hasEndedBoost;
@@ -27,7 +27,7 @@ public class UpdatePacket implements PacketData{
 
 
     public UpdatePacket(byte[] data, int offset) throws PacketDecodeException {
-        if (data.length - offset >= 50) throw new PacketDecodeException("Buffer Too Small for type UpdatePacket");
+        if (data.length - offset < 50) throw new PacketDecodeException("Buffer Too Small for type UpdatePacket got " + (data.length - offset) + " bytes");
         if (data[offset] != 0b01) throw new PacketDecodeException("Type not marked as UpdatePacket");
         byte status = data[offset + 1];
         isReady                    = 0!=(status & 0b00001);
@@ -54,4 +54,8 @@ public class UpdatePacket implements PacketData{
         azimuth = ByteUtils.floatFromBytes(data, offset + 46);
     }
 
+    @Override
+    public int length() {
+        return length;
+    }
 }

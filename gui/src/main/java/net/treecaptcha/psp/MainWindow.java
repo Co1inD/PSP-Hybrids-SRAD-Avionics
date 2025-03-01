@@ -12,6 +12,7 @@ import org.jfree.data.general.ValueDataset;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 
 public class MainWindow extends JPanel{
     public JTabbedPane tabbedPane1;
@@ -31,6 +32,8 @@ public class MainWindow extends JPanel{
     private int latest_packet_timestamp;
     private String[][] tableData;
 
+    // Listener
+    private OnCommandReceive receiver;
 
     public void update(PacketData packetData){
         if (packetData instanceof UpdatePacket){
@@ -38,19 +41,45 @@ public class MainWindow extends JPanel{
             if (latest_packet_timestamp < updatePacket.time){
                 velocity.setValue(length(updatePacket.velocityE, updatePacket.velocityN, updatePacket.velocityU));
                 acceleration.setValue(length(updatePacket.accelerationE, updatePacket.accelerationN, updatePacket.accelerationU));
-                
+                tableData[3][1] = String.valueOf(updatePacket.accelerationN);
+                tableData[3][2] = String.valueOf(updatePacket.accelerationE);
+                tableData[3][3] = String.valueOf(updatePacket.accelerationU);
 
+                tableData[4][1] = String.valueOf(updatePacket.velocityN);
+                tableData[4][2] = String.valueOf(updatePacket.velocityE);
+                tableData[4][3] = String.valueOf(updatePacket.velocityU);
+
+                tableData[5][1] = String.valueOf(updatePacket.positionN);
+                tableData[5][2] = String.valueOf(updatePacket.positionE);
+                tableData[5][3] = String.valueOf(updatePacket.positionU);
+
+                tableData[8][1] = String.valueOf(updatePacket.polar);
+                tableData[8][2] = String.valueOf(updatePacket.azimuth);
+
+                if (!updatePacket.isReady)
+                    tableData[0][1] = "Not Armed";
+                if (updatePacket.isReady)
+                    tableData[0][1] = "Armed";
+                if (updatePacket.hasLaunched)
+                    tableData[0][1] = "Boost";
+                if (updatePacket.hasEndedBoost)
+                    tableData[0][1] = "Coast";
+                if (updatePacket.hasLaunchedFirstParachute)
+                    tableData[0][1] = "First Parachute";
+                if (updatePacket.hasLaunchedSecondParachute)
+                    tableData[0][1] = "Second Parachute";
+                updateTable();
             }
         }
         if (packetData instanceof MessagePacket){
             MessagePacket logPacket = (MessagePacket) packetData;
-            logPane.setText(logPacket.text);
+            displayLog(logPacket.text);
         }
 
     }
 
 
-    public MainWindow() {
+    public MainWindow(OnCommandReceive commandReceiver) {
         contentPane = new JPanel();
         JFrame frame = new JFrame("MainWindow");
         frame.setContentPane(this.contentPane);
@@ -91,7 +120,22 @@ public class MainWindow extends JPanel{
         };
         updateTable();
 
+        // When command is issued pass it on
+        receiver = commandReceiver;
+        Action action = new AbstractAction() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String command = commandField.getText();
+                commandField.setText("");
+                if (receiver != null) receiver.onCommand(command);
+            }
+        };
+        commandField.addActionListener(action);
+
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        commandField.requestFocus();
+    
     }
     private void updateTable(){
         for (int i = 0; i < tableData.length; i++){
@@ -102,7 +146,7 @@ public class MainWindow extends JPanel{
     }
     public static void main(String[] args) throws InterruptedException {
 
-        MainWindow mainWindow = new MainWindow();
+        MainWindow mainWindow = new MainWindow(null);
         for (int i = 0; i < 20; i++) {
             mainWindow.displayLog("UI TEST LOG " + i);
             Thread.sleep(500);

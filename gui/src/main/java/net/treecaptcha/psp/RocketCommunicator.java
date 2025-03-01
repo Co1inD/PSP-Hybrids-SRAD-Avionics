@@ -3,7 +3,7 @@ package net.treecaptcha.psp;
 public interface RocketCommunicator {
     void setOnDataReceive(OnDataReceive ondatareceive);
 
-    void transmit(Byte[] data);
+    void transmit(byte[] data);
 
     boolean hasConnection();
 

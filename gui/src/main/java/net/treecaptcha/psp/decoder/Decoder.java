@@ -10,7 +10,7 @@ public class Decoder {
         while (offset < data.length) {
             PacketData packetData = decode(data, offset);
             list.add(packetData);
-            offset += packetData.length;
+            offset += packetData.length();
         }
         return list;
     }
