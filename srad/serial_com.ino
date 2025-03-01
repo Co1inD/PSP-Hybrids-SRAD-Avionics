@@ -15,7 +15,7 @@ void send(String data){
   Serial.println(data);
 }
 void doComReady(){
-  Serial.begin(9600);
+  Serial.begin(38400);
   while (!Serial);
 }
 #endif

@@ -73,6 +73,7 @@ void logLoop(void *parameter){
       log(logData[loggedIDX], lengths[loggedIDX]);
       loggedIDX++;
       if (loggedIDX == 3000) loggedIDX = 0;
+      delay(1); // avoid setting off watchdog
     }
     delay(10);
   }
@@ -84,7 +85,7 @@ void sendLoop(void *parameter){
       send(sendData[sentIDX], lengths[sentIDX]);
       sentIDX++;
       if (sentIDX == 3000) sentIDX = 0;
-      delay(1);
+      delay(1); // avoid setting off watchdog
     }
     delay(10);
   }
