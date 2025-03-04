@@ -8,7 +8,6 @@ void send(char* data, int length){
   }
   Serial.write("\n");
   Serial.flush();
-  free(data);
 }
 void send(String data){
   Serial.write("02");

@@ -16,11 +16,9 @@ void log(char* data, int length){
         myFile.write("%s\n", data[i]);
     }
   //logging data
-  free(data);
 }
 void log(String data){
   myFile = SD.open("Output_File.txt", FILE_APPEND);
   myFile.write("%s\n", data);
-  free(data);
 }
 #endif

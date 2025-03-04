@@ -11,44 +11,76 @@
 #define G 9.8               // m/s/s
 #define SPEED_OF_SOUND 300  // m/s
 
+#define ChunkSize 20
+#define MaxSendChunks 100
+#define MaxLogChunks 100
+
 TaskHandle_t mainTask;
 TaskHandle_t logTask;
 TaskHandle_t comTask;
 
+SemaphoreHandle_t sendLock;
+SemaphoreHandle_t logLock;
+
+
+struct SizedData {
+  int length;
+  char* data;
+};
+
+int sendQueueChunkSize;
+struct SizedData* sendChunkQueue;
+
+int logQueueChunkSize;
+struct SizedData* logChunkQueue;
 
 
 void setup() {
+  sendLock = xSemaphoreCreateMutex();
+  sendChunkQueue = (SizedData*)malloc(ChunkSize * sizeof(struct SizedData));
+
+  logLock = xSemaphoreCreateMutex();
+  logChunkQueue = (SizedData*)malloc(ChunkSize * sizeof(struct SizedData));
+
   doSensorReady();
   doComReady();
   doLogReady();
   xTaskCreatePinnedToCore(
-      mainLoop, /* Function to implement the task */
-      "main loop", /* Name of the task */
-      10000,  /* Stack size in words */
-      NULL,  /* Task input parameter */
-      0,  /* Priority of the task */
-      &mainTask,  /* Task handle. */
-      1); /* Core where the task should run */
+    mainLoop,    /* Function to implement the task */
+    "main loop", /* Name of the task */
+    10000,       /* Stack size in words */
+    NULL,        /* Task input parameter */
+    0,           /* Priority of the task */
+    &mainTask,   /* Task handle. */
+    1);          /* Core where the task should run */
   xTaskCreatePinnedToCore(
-      logLoop, /* Function to implement the task */
-      "log loop", /* Name of the task */
-      10000,  /* Stack size in words */
-      NULL,  /* Task input parameter */
-      1,  /* Priority of the task */
-      &logTask,  /* Task handle. */
-      0); /* Core where the task should run */
+    logLoop,    /* Function to implement the task */
+    "log loop", /* Name of the task */
+    10000,      /* Stack size in words */
+    NULL,       /* Task input parameter */
+    1,          /* Priority of the task */
+    &logTask,   /* Task handle. */
+    0);         /* Core where the task should run */
   xTaskCreatePinnedToCore(
-      sendLoop, /* Function to implement the task */
-      "send loop", /* Name of the task */
-      10000,  /* Stack size in words */
-      NULL,  /* Task input parameter */
-      1,  /* Priority of the task */
-      &comTask,  /* Task handle. */
-      0); /* Core where the task should run */
+    sendLoop,    /* Function to implement the task */
+    "send loop", /* Name of the task */
+    10000,       /* Stack size in words */
+    NULL,        /* Task input parameter */
+    1,           /* Priority of the task */
+    &comTask,    /* Task handle. */
+    0);          /* Core where the task should run */
 
 }
 
-void loop(){
+void destroyChunk(struct SizedData*);
+void loop();
+void logLoop(void*);
+void sendLoop(void*);
+void queueSend(char*, int);
+
+
+
+void loop() {
   delay(1000);
 }
 
@@ -61,47 +93,120 @@ float newAlt[10];
 int altIndex;
 bool altFull;
 
-char* logData[3000];
-char* sendData[3000];
-int lengths[3000];
-int IDX = 0;
+struct SizedData* logData[MaxLogChunks];
+struct SizedData* sendData[MaxSendChunks];
+int sendHead;
+int sendSize;
 
-void logLoop(void *parameter){
-  int loggedIDX = 0;
-  while(true){
-    while(IDX != loggedIDX){
-      log(logData[loggedIDX], lengths[loggedIDX]);
-      loggedIDX++;
-      if (loggedIDX == 3000) loggedIDX = 0;
-      delay(1); // avoid setting off watchdog
+int logHead;
+int logSize;
+
+void logLoop(void* parameter) {
+  while (true) {
+    while (logSize != 0) {
+      xSemaphoreTake(logLock, pdMS_TO_TICKS(9999999));
+      struct SizedData* chunk = logData[logHead];
+      logHead = --logHead == -1 ? MaxLogChunks - 1:logHead;
+      logSize--;
+      xSemaphoreGive(logLock);
+      for(int i = 0; i<ChunkSize ; i++){
+        log(chunk[i].data, chunk[i].length);
+      }
+      destroyChunk(chunk);
+      delay(1);  // avoid setting off watchdog
     }
     delay(10);
   }
 }
-void sendLoop(void *parameter){
-  int sentIDX = 0;
-  while(true){
-    while(IDX != sentIDX){
-      send(sendData[sentIDX], lengths[sentIDX]);
-      sentIDX++;
-      if (sentIDX == 3000) sentIDX = 0;
-      delay(1); // avoid setting off watchdog
+void sendLoop(void* parameter) {
+  while (true) {
+    while (sendSize != 0) {
+      xSemaphoreTake(sendLock, pdMS_TO_TICKS(9999999));
+      struct SizedData* chunk = sendData[sendHead];
+      sendHead = --sendHead == -1 ? MaxSendChunks - 1:sendHead;
+      sendSize--;
+      xSemaphoreGive(sendLock);
+      for(int i = 0; i<ChunkSize ; i++){
+        send(chunk[i].data, chunk[i].length);
+      }
+      destroyChunk(chunk);
+      delay(1);  // avoid setting off watchdog
     }
     delay(10);
   }
 }
-
-void queueRecord(char* data, int length){
+/**
+* @param data - the data to record (will be freed after transmission)
+* @param length - the length of the data to record
+*/
+void queueRecord(char* data, int length) {
   char* copiedData = (char*)malloc(length);
   memcpy(copiedData, data, length);
-  lengths[IDX] = length;
-  logData[IDX] = data;  
-  sendData[IDX] = copiedData; 
-  IDX++;
-  if (IDX == 3000) IDX = 0;
+  queueLog(data, length);
+  queueSend(copiedData, length);
 }
 
-void queueRecord(String data){
+void queueLog(char* data, int length){
+  logChunkQueue[logQueueChunkSize].length = length;
+  logChunkQueue[logQueueChunkSize].data = data;
+  logQueueChunkSize++;
+  // if the chunk is full of data queue it
+  if (logQueueChunkSize == ChunkSize) {
+    // Prevent the stack from being read during
+    xSemaphoreTake(logLock, pdMS_TO_TICKS(9999999));
+    if (logSize == MaxLogChunks) {
+      logHead = ++logHead == MaxLogChunks ? 0: logHead;
+      struct SizedData* victimChunk = logData[logHead];
+      logData[logHead] = logChunkQueue;
+      xSemaphoreGive(logLock);
+      destroyChunk(victimChunk);
+    } else {
+      logHead = ++logHead == MaxLogChunks ? 0: logHead;
+      logSize++;
+      logData[logHead] = logChunkQueue;
+      xSemaphoreGive(logLock);
+    }
+    logChunkQueue = (SizedData*)malloc(ChunkSize * sizeof(struct SizedData));
+    logQueueChunkSize = 0;
+  }
+}
+
+void queueSend(char* data, int length) {
+  //struct SizedData* sizedData = malloc(sizeof(struct SizedData));
+  sendChunkQueue[sendQueueChunkSize].length = length;
+  sendChunkQueue[sendQueueChunkSize].data = data;
+  sendQueueChunkSize++;
+  // if the chunk is full of data queue it
+  if (sendQueueChunkSize == ChunkSize) {
+    // Prevent the stack from being read during
+    xSemaphoreTake(sendLock, pdMS_TO_TICKS(9999999));
+    if (sendSize == MaxSendChunks) {
+      sendHead = ++sendHead == MaxSendChunks ? 0: sendHead;
+      struct SizedData* victimChunk = sendData[sendHead];
+      sendData[sendHead] = sendChunkQueue;
+      xSemaphoreGive(sendLock);
+      destroyChunk(victimChunk);
+    } else {
+      sendHead = ++sendHead == MaxSendChunks ? 0: sendHead;
+      sendSize++;
+      sendData[sendHead] = sendChunkQueue;
+      xSemaphoreGive(sendLock);
+    }
+    sendChunkQueue = (SizedData*)malloc(ChunkSize * sizeof(struct SizedData));
+    sendQueueChunkSize = 0;
+    // Desynchronize
+  }
+}
+
+void destroyChunk(struct SizedData* victim) {
+  for (int i = 0; i < ChunkSize; i++) {
+    free(victim[i].data);
+  }
+  
+  free(victim);
+}
+
+void queueRecord(String data) {
   const char* cstr = data.c_str();
   int len = strlen(cstr);
   char* copiedcstr = (char*)malloc(len + 5);
@@ -111,34 +216,31 @@ void queueRecord(String data){
   queueRecord(copiedcstr, len + 5);
 }
 
-void mainLoop(void *parameter) {
-  while(true){
+void mainLoop(void* parameter) {
+  while (true) {
     int startTime = millis();
     update();
     float vel = getVelocityMagnitude();
     float acc = getAccelerationMagnitude();
     float alt = getBaro();
-    if (!armed){}
-    else if (!takenOff) {
+    if (!armed) {
+    } else if (!takenOff) {
       if (acc > 3 * G) {
         takenOff = millis();
       }
-      
-    }
-    else if (!boostDone) {
+
+    } else if (!boostDone) {
       float* accVec = getAcceleration();
       if (accVec[2] < 0) {
         boostDone = millis();
       }
-      
-    }
-    else if (!sonicOver) {
+
+    } else if (!sonicOver) {
       if (vel < SPEED_OF_SOUND) {
         sonicOver = millis();
       }
-      
-    }
-    else if (!paraOneLaunch) {
+
+    } else if (!paraOneLaunch) {
       if (altIndex == 10) {
         altIndex = 0;
         altFull = millis();
@@ -150,9 +252,8 @@ void mainLoop(void *parameter) {
         paraOneLaunch = millis();
         launchChute(1);
       }
-    }
-    else if(!paraTwoLaunch){
-      if (alt < paraTwoAlt){
+    } else if (!paraTwoLaunch) {
+      if (alt < paraTwoAlt) {
         paraTwoLaunch = millis();
         launchChute(2);
       }
@@ -160,16 +261,22 @@ void mainLoop(void *parameter) {
     char* updateP = updatePacket();
     queueRecord(updateP, UPDATE_PACKET_LENGTH);
     int endTime = millis();
-    delay(startTime > endTime - 10? 10 - (endTime - startTime ): 0);
+    if (endTime - startTime <  10){
+      delay(10 - (endTime - startTime));
+    }
+    else{
+      // Serial.println("Running Late!");
+    }
+    //delay(endTime - startTime <  10 ? 10 - (endTime - startTime) : 0);
   }
 }
 
-float averageFloat(float* arr , int len){
+float averageFloat(float* arr, int len) {
   float sum = 0.0f;
-  for(int i = 0; i < len; i++){
+  for (int i = 0; i < len; i++) {
     sum += arr[i];
   }
-  return sum/len;
+  return sum / len;
 }
 
 float getAccelerationMagnitude() {
@@ -188,12 +295,12 @@ char* updatePacket() {
   char* data = (char*)malloc(UPDATE_PACKET_LENGTH);
   data[0] = 0b01;
   char status = 0;
-  status += 0b00000001 * 0!=armed;
-  status += 0b00000010 * 0!=takenOff;
-  status += 0b00000100 * 0!=boostDone;
-  status += 0b00001000 * 0!=sonicOver;
-  status += 0b00010000 * 0!=paraOneLaunch;
-  status += 0b00100000 * 0!=paraTwoLaunch;
+  status += 0b00000001 * 0 != armed;
+  status += 0b00000010 * 0 != takenOff;
+  status += 0b00000100 * 0 != boostDone;
+  status += 0b00001000 * 0 != sonicOver;
+  status += 0b00010000 * 0 != paraOneLaunch;
+  status += 0b00100000 * 0 != paraTwoLaunch;
   data[1] = status;
   int timeTemp = (int)millis();
   memcpy(data + 2, &(timeTemp), 4);
