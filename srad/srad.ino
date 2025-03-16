@@ -15,6 +15,7 @@
 #define MaxSendChunks 100
 #define MaxLogChunks 100
 
+
 TaskHandle_t mainTask;
 TaskHandle_t logTask;
 TaskHandle_t comTask;
@@ -69,7 +70,6 @@ void setup() {
     1,           /* Priority of the task */
     &comTask,    /* Task handle. */
     0);          /* Core where the task should run */
-
 }
 
 void destroyChunk(struct SizedData*);
@@ -106,10 +106,10 @@ void logLoop(void* parameter) {
     while (logSize != 0) {
       xSemaphoreTake(logLock, pdMS_TO_TICKS(9999999));
       struct SizedData* chunk = logData[logHead];
-      logHead = --logHead == -1 ? MaxLogChunks - 1:logHead;
+      logHead = --logHead == -1 ? MaxLogChunks - 1 : logHead;
       logSize--;
       xSemaphoreGive(logLock);
-      for(int i = 0; i<ChunkSize ; i++){
+      for (int i = 0; i < ChunkSize; i++) {
         log(chunk[i].data, chunk[i].length);
       }
       destroyChunk(chunk);
@@ -123,10 +123,10 @@ void sendLoop(void* parameter) {
     while (sendSize != 0) {
       xSemaphoreTake(sendLock, pdMS_TO_TICKS(9999999));
       struct SizedData* chunk = sendData[sendHead];
-      sendHead = --sendHead == -1 ? MaxSendChunks - 1:sendHead;
+      sendHead = --sendHead == -1 ? MaxSendChunks - 1 : sendHead;
       sendSize--;
       xSemaphoreGive(sendLock);
-      for(int i = 0; i<ChunkSize ; i++){
+      for (int i = 0; i < ChunkSize; i++) {
         send(chunk[i].data, chunk[i].length);
       }
       destroyChunk(chunk);
@@ -146,7 +146,7 @@ void queueRecord(char* data, int length) {
   queueSend(copiedData, length);
 }
 
-void queueLog(char* data, int length){
+void queueLog(char* data, int length) {
   logChunkQueue[logQueueChunkSize].length = length;
   logChunkQueue[logQueueChunkSize].data = data;
   logQueueChunkSize++;
@@ -155,13 +155,13 @@ void queueLog(char* data, int length){
     // Prevent the stack from being read during
     xSemaphoreTake(logLock, pdMS_TO_TICKS(9999999));
     if (logSize == MaxLogChunks) {
-      logHead = ++logHead == MaxLogChunks ? 0: logHead;
+      logHead = ++logHead == MaxLogChunks ? 0 : logHead;
       struct SizedData* victimChunk = logData[logHead];
       logData[logHead] = logChunkQueue;
       xSemaphoreGive(logLock);
       destroyChunk(victimChunk);
     } else {
-      logHead = ++logHead == MaxLogChunks ? 0: logHead;
+      logHead = ++logHead == MaxLogChunks ? 0 : logHead;
       logSize++;
       logData[logHead] = logChunkQueue;
       xSemaphoreGive(logLock);
@@ -181,13 +181,13 @@ void queueSend(char* data, int length) {
     // Prevent the stack from being read during
     xSemaphoreTake(sendLock, pdMS_TO_TICKS(9999999));
     if (sendSize == MaxSendChunks) {
-      sendHead = ++sendHead == MaxSendChunks ? 0: sendHead;
+      sendHead = ++sendHead == MaxSendChunks ? 0 : sendHead;
       struct SizedData* victimChunk = sendData[sendHead];
       sendData[sendHead] = sendChunkQueue;
       xSemaphoreGive(sendLock);
       destroyChunk(victimChunk);
     } else {
-      sendHead = ++sendHead == MaxSendChunks ? 0: sendHead;
+      sendHead = ++sendHead == MaxSendChunks ? 0 : sendHead;
       sendSize++;
       sendData[sendHead] = sendChunkQueue;
       xSemaphoreGive(sendLock);
@@ -202,7 +202,7 @@ void destroyChunk(struct SizedData* victim) {
   for (int i = 0; i < ChunkSize; i++) {
     free(victim[i].data);
   }
-  
+
   free(victim);
 }
 
@@ -261,10 +261,9 @@ void mainLoop(void* parameter) {
     char* updateP = updatePacket();
     queueRecord(updateP, UPDATE_PACKET_LENGTH);
     int endTime = millis();
-    if (endTime - startTime <  10){
+    if (endTime - startTime < 10) {
       delay(10 - (endTime - startTime));
-    }
-    else{
+    } else {
       // Serial.println("Running Late!");
     }
     char* datas = receive();
