@@ -267,7 +267,25 @@ void mainLoop(void* parameter) {
     else{
       // Serial.println("Running Late!");
     }
-    //delay(endTime - startTime <  10 ? 10 - (endTime - startTime) : 0);
+    char* datas = receive();
+    if (datas) {
+      if (datas[0] == 'a' && datas[1] == 'r' && datas[2] == 'm') {
+        armed = millis();
+      } else if (String(datas).startsWith("disarm")) {
+        if (!takenOff) {
+          armed = 0;
+          queueRecord("Disarmed!\n");
+        } else {
+          armed = 0;
+          takenOff = 0;
+          boostDone = 0;
+          sonicOver = 0;
+          paraOneLaunch = 0;
+          paraTwoLaunch = 0;
+          queueRecord("Boost already started! disarming anyways!!");
+        }
+      }
+    }
   }
 }
 
