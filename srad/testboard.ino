@@ -3,6 +3,12 @@
 #include <math.h>
 #endif
 
+#define AUX 15
+#define TXD 17
+#define RXD 16
+#define M1  18
+#define M0  13
+
 float velocity[] = {0, 0, 0};
 float acceleration[] = {0, 0, 0};
 float position[] = {0, 0, 0};
@@ -44,10 +50,10 @@ void buzzer(int mode){
 void update() {
   position[0] = sin(millis()/2000.0);
   position[1] = cos(millis()/2000.0);
-  velocity[0] = cos(millis()/2000.0);
-  velocity[1] = -sin(millis()/2000.0);
-  acceleration[0] = -sin(millis()/2000.0);
-  acceleration[1] = -cos(millis()/2000.0);
+  //velocity[0] = cos(millis()/2000.0);
+  velocity[1] = 250 + 250 * -sin(millis()/2000.0);
+  //acceleration[0] = -sin(millis()/2000.0);
+  acceleration[1] = 50 + 50 * - cos(millis()/2000.0);
   // call the filter
   
   // some stuff
