@@ -5,6 +5,7 @@ import net.treecaptcha.psp.decoder.Decoder;
 import net.treecaptcha.psp.decoder.PacketData;
 import net.treecaptcha.psp.decoder.PacketDecodeException;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
@@ -34,10 +35,14 @@ public class PSPControllerGUI implements OnDataReceive, OnCommandReceive {
 
     @Override
     public void onCommand(String command) {
-        mainWindow.displayLog(command);
+        mainWindow.displayLog("> " + command);
         String[] segs = command.split(" ");
         String[] args = Arrays.copyOfRange(segs, 1, segs.length);
-        switch (segs[0]) {
+        if(command.startsWith("/")){
+            if (rocketComunicator != null) rocketComunicator.transmit((command.substring(1) + "\n").getBytes(StandardCharsets.US_ASCII));
+            else mainWindow.displayLog("No rocket com initialized");
+        }
+        else switch (segs[0]) {
             case "com":
                 comStuff(args);
         }

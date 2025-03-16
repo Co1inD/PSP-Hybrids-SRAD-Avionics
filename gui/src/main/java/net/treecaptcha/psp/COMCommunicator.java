@@ -4,6 +4,7 @@ import com.fazecast.jSerialComm.*;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HexFormat;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class COMCommunicator extends Thread implements RocketCommunicator {
@@ -41,12 +42,16 @@ public class COMCommunicator extends Thread implements RocketCommunicator {
         Scanner scanner = new Scanner(inputStream);
         while (true){
             while (serialPort.bytesAvailable() >= 2) {
-                String data = scanner.nextLine();
-                if (data.startsWith("0") && data.length() % 2 == 0)
-                    ondataReceive.onDataReceive(HexFormat.of().parseHex(data));
-                else
-                    System.out.println("Received bad data: " + data);
-                lastConnectTime = System.currentTimeMillis();
+                try {
+                    String data = scanner.nextLine();
+                    if (data.startsWith("0") && data.length() % 2 == 0)
+                        ondataReceive.onDataReceive(HexFormat.of().parseHex(data));
+                    else
+                        System.out.println("Received bad data: " + data);
+                    lastConnectTime = System.currentTimeMillis();
+                }
+                catch (NoSuchElementException e) {
+                }
             }
             try {
                 Thread.sleep(1);

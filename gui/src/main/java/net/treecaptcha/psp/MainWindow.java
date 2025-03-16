@@ -73,7 +73,7 @@ public class MainWindow extends JPanel{
         }
         if (packetData instanceof MessagePacket){
             MessagePacket logPacket = (MessagePacket) packetData;
-            displayLog(logPacket.text);
+            displayLog(": " + logPacket.text);
         }
 
     }
@@ -95,7 +95,7 @@ public class MainWindow extends JPanel{
         velocityGauge.add(velocityChartPanel, BorderLayout.CENTER);
 
         acceleration = new DefaultValueDataset(-1);
-        JFreeChart accelerationDialChart = createStandardDialChart("Acceleration", "magnitude (m/s^2)", velocity, 0, 100, 10, 9);
+        JFreeChart accelerationDialChart = createStandardDialChart("Acceleration", "magnitude (m/s^2)", acceleration, 0, 100, 10, 9);
         ChartPanel chartPanel = new ChartPanel(accelerationDialChart);
         accelerationGauge.setLayout(new java.awt.BorderLayout());
         accelerationGauge.add(chartPanel, BorderLayout.CENTER);
@@ -128,6 +128,7 @@ public class MainWindow extends JPanel{
             public void actionPerformed(ActionEvent e) {
                 String command = commandField.getText();
                 commandField.setText("");
+                if (command.isBlank()) return;
                 if (receiver != null) receiver.onCommand(command);
             }
         };
