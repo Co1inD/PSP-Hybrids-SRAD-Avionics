@@ -73,7 +73,7 @@ public:
      * @param y Reference to store Y-axis acceleration.
      * @param z Reference to store Z-axis acceleration.
      */
-    void readXYZ(int16_t *x, int16_t *y, int16_t *z);
+    void H3LIS100DL_readXYZ(int16_t *x, int16_t *y, int16_t *z);
 
 private:
     uint8_t _address;  // Stores the I2C address of the accelerometer

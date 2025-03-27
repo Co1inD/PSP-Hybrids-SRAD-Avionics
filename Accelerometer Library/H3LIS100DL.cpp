@@ -1,7 +1,7 @@
 #include "H3LIS100DL.h"
 
 // Constructor class: takes in slave address and saves as attribute of sensor's class
-H3LIS100DL::H3LIS100DL(uint8_t addr) {
+H3LIS100DL::H3LIS100DL(uint8_t i2Caddress) {
     _address = i2Caddress;
 }
 
@@ -10,9 +10,9 @@ bool H3LIS100DL::H3LIS100DL_begin() {
     
 
     //check valid connection
-    if (H3LIS110DL.readRegister(WHO_AM_I) == WHO_AM_I_RESPONSE) {
-        Wire.begin() //begin wire library
-        return true
+    if (this->readRegister(WHO_AM_I) == WHO_AM_I_RESPONSE) {
+        Wire.begin(); //begin wire library
+        return true;
     }
 
     //if not valid
@@ -23,7 +23,7 @@ bool H3LIS100DL::H3LIS100DL_begin() {
 }
 
 //reads a register
-uint8_t H3LIS100DL::H3LIS100DL_readRegister(uint8_t reg) {
+uint8_t H3LIS100DL::readRegister(uint8_t reg) {
     uint8_t error; // error flag for failed transmission
     uint8_t dataReceived; //received byte 
 
@@ -55,13 +55,13 @@ void H3LIS100DL::H3LIS100DL_readXYZ(int16_t *x, int16_t *y, int16_t *z) {
     uint8_t z_raw;
 
     //read raw acceleration data from registers
-    x_raw = H3LIS100DL.readRegister(OUT_X);
-    y_raw = H3LIS100DL.readRegister(OUT_Y);
-    z_raw = H3LIS100DL.readRegister(OUT_Z);
+    x_raw = this->readRegister(OUT_X);
+    y_raw = this->readRegister(OUT_Y);
+    z_raw = this->readRegister(OUT_Z);
 
     // cast raw values to int to make them decimal and resolve twos complement
     // gives signed decimal output in g's
-    *x = (rawValue < 128) ? rawValue : rawValue - 256;
-    *y = (rawValue < 128) ? rawValue : rawValue - 256;
-    *z = (rawValue < 128) ? rawValue : rawValue - 256;
+    *x = (x_raw < 128) ? x_raw : x_raw - 256;
+    *y = (y_raw < 128) ? y_raw : y_raw - 256;
+    *z = (z_raw < 128) ? z_raw : z_raw - 256;
 }
