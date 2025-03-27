@@ -1,6 +1,6 @@
 #include <Wire.h>
 
-#define i2C_ADDRESS 0x68  
+#define i2C_ADDRESS 0b0011000  
 #define WHO_AM_I  0x0F
 
 void setup() {
