@@ -19,7 +19,7 @@ void setup() {
 
     Wire.requestFrom(DEVICE_ADDRESS, 1);
     if (Wire.available()) {
-        uint8_t response = Wire.read();
+        response = Wire.read();
         Serial.print("WHO_AM_I Register Value: 0x");
         Serial.println(response, HEX);
     } else {
