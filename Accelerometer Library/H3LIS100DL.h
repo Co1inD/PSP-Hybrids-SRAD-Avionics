@@ -51,7 +51,7 @@ public:
      * @brief Initializes the accelerometer (checks communication).
      * @return `true` if the device is detected, `false` otherwise.
      */
-    bool H3LIS100DL_begin();  
+    bool H3LIS100DL_begin(int SDA, int SCL);  
 
     /*!
      * brief Writes a value to a specific register on the accelerometer.
