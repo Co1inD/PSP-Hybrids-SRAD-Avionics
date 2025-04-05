@@ -24,7 +24,7 @@ void loop()
   // We must call readDigitalValue() before getTemperature()/getPressure()
   if (baro.readDigitalValue())
   {
-    float tempC     = baro.getTemperature();
+    float tempC     = baro.getTemperature(); // Board Temperture  
     float pressure  = baro.getPressure();
     float altitudeM = baro.getAltitude();
     Serial.print("Temp: ");
