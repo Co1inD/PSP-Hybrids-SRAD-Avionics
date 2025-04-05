@@ -6,21 +6,46 @@ H3LIS100DL::H3LIS100DL(uint8_t i2Caddress) {
 }
 
 // begins i2c connection and checks it is valid
-bool H3LIS100DL::H3LIS100DL_begin() {
+bool H3LIS100DL::H3LIS100DL_begin(int SDA, int SCL) {
+    Wire.begin(SDA, SCL);
     
-
-    //check valid connection
+    //check i2C connection with accelerometer
     if (this->readRegister(WHO_AM_I) == WHO_AM_I_RESPONSE) {
-        Wire.begin(); //begin wire library
-        return true;
+       
+        //initialize x y z collection
+        if(this->writeRegister(CTRL_REG1, 0b00100111)) {
+            return true;
+        }
     }
 
-    //if not valid
+    return false;
+
+    //if no valid connection end wire and print error
     else {
+        Wire.end();
         Serial.println("H3LIS100DL not found");
         return false;
     }
 }
+
+// Writes message to a register
+bool H3LIS100DL::writeRegister(uint8_t reg, uint8_t message) {
+    uint8_t error; // error flag for failed transmission
+
+    Wire.beginTransmission(_address);
+    Wire.write(reg);
+    Wire.write(message);
+    error = Wire.endTransmission();
+
+    // Check transmission was successful
+    if (error != 0) {
+        Serial.println("Write to Register Failed");
+        return false;
+    }
+
+    return true;
+}
+
 
 //reads a register
 uint8_t H3LIS100DL::readRegister(uint8_t reg) {
@@ -31,8 +56,9 @@ uint8_t H3LIS100DL::readRegister(uint8_t reg) {
     Wire.write(reg); //call register for data
     error = Wire.endTransmission(); //end transmission, check for NACK or errors
     
+    // Check sucessful transmission
     if (error != 0) {
-        Serial.println("Transmission Failed");
+        Serial.println("Register Read Failed");
         return 255; // error case return
     }
     
@@ -61,6 +87,8 @@ void H3LIS100DL::H3LIS100DL_readXYZ(int16_t *x, int16_t *y, int16_t *z) {
 
     // cast raw values to int to make them decimal and resolve twos complement
     // gives signed decimal output in g's
+    
+    
     *x = (x_raw < 128) ? x_raw : x_raw - 256;
     *y = (y_raw < 128) ? y_raw : y_raw - 256;
     *z = (z_raw < 128) ? z_raw : z_raw - 256;
