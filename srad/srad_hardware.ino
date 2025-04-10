@@ -25,7 +25,7 @@
 #define GPS_EXTINT 34
 #define GPS_SCLK 35
 #define GPS_SDA 36
-#define Buzzer 33
+#define BUZZER 33
 
 float* getVelocity() {
   // some stuff

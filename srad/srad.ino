@@ -2,7 +2,7 @@
 // Hardware Driver: Test_Board | Colin_Board | Srad_Hardware
 #define Test_Board 1
 // Comunication library: Serial_Com | Radio_Com
-#define Serial_Com 1
+#define Radio_Com 1
 // Logging Library: SD_Log | Null_Log
 #define Null_Log 1
 
@@ -11,7 +11,7 @@
 #define G 9.8               // m/s/s
 #define SPEED_OF_SOUND 300  // m/s
 
-#define ChunkSize 20
+#define ChunkSize 10
 #define MaxSendChunks 100
 #define MaxLogChunks 100
 
@@ -217,6 +217,7 @@ void queueRecord(String data) {
 }
 
 void mainLoop(void* parameter) {
+  int i = 0;
   while (true) {
     int startTime = millis();
     update();
@@ -258,14 +259,19 @@ void mainLoop(void* parameter) {
         launchChute(2);
       }
     }
-    char* updateP = updatePacket();
-    queueRecord(updateP, UPDATE_PACKET_LENGTH);
+
+    if ((i % 10) == 2){
+      char* updateP = updatePacket();
+      queueRecord(updateP, UPDATE_PACKET_LENGTH);
+    }
+    i++;
     int endTime = millis();
     if (endTime - startTime < 10) {
       delay(10 - (endTime - startTime));
     } else {
       // Serial.println("Running Late!");
     }
+    /*
     char* datas = receive();
     if (datas) {
       if (datas[0] == 'a' && datas[1] == 'r' && datas[2] == 'm') {
@@ -284,7 +290,14 @@ void mainLoop(void* parameter) {
           queueRecord("Boost already started! disarming anyways!!");
         }
       }
+      else if (datas[0] == 'b' && datas[1] == '1'){
+        launchChute(1);
+      }
+      else if (datas[0] == 'b' && datas[1] == '2'){
+        launchChute(2);
+      }
     }
+    */
   }
 }
 

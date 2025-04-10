@@ -3,11 +3,7 @@
 #include <math.h>
 #endif
 
-#define AUX 15
-#define TXD 17
-#define RXD 16
-#define M1  18
-#define M0  13
+
 
 float velocity[] = {0, 0, 0};
 float acceleration[] = {0, 0, 0};
