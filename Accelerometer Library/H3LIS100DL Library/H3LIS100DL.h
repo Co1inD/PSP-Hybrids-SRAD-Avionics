@@ -42,33 +42,40 @@ class H3LIS100DL {
 public:
     
     /*!
-     * @brief Constructor for the accelerometer class.
+     * @brief       Constructor for the accelerometer class.
      * @param addr I2C address of the accelerometer.
      */
     H3LIS100DL(uint8_t addr);
 
     /*!
-     * @brief Initializes the accelerometer (checks communication).
-     * @return `true` if the device is detected, `false` otherwise.
+     * @brief     Checks communication, Initializes i2C, Initializes data collection.
+     * @param SDA SDA pin
+     * @param SCL SCL pin
+     * @return    `true` if the device is detected, `false` otherwise.
      */
-    bool H3LIS100DL_begin();  
+    bool H3LIS100DL_begin(int SDA, int SCL);  
 
+  
     /*!
-     * brief Writes a value to a specific register on the accelerometer.
-     * param reg Register address to write to.
-     * param value The value to write.
-     */
-    // void writeRegister(uint8_t reg, uint8_t value);
-
-    /*!
-     * @brief Reads the value from a specific register.
+     * @brief     Reads the value from a specific register.
      * @param reg Register address to read from.
-     * @return The 8-bit value stored in the register.
+     * @return    The 8-bit value stored in the register.
      */
     uint8_t readRegister(uint8_t reg);
 
+
+
+    /*!
+     * @brief         Writes a message to a register
+     * @param reg     Register address to write to
+     * @param message To be written to register.
+     * @return        True if successful, False if failed.
+     */
+    bool writeRegister(uint8_t reg, uint8_t message);
+
+
    /*!
-     * @brief Reads raw acceleration data from the X, Y, and Z axes.
+     * @brief   Reads raw acceleration data from the X, Y, and Z axes.
      * @param x Reference to store X-axis acceleration.
      * @param y Reference to store Y-axis acceleration.
      * @param z Reference to store Z-axis acceleration.
